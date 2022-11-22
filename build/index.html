@@ -26,16 +26,22 @@
       transition: all .25s;
     }
 
-    #controls>summary {
-      text-align: center;
-    }
-
     #controls:hover,
     #controls:focus,
     #controls:focus-visible {
       background: rgb(75, 75, 75);
       transition: all .25s;
       color: white;
+    }
+
+    #controls>summary {
+      text-align: center;
+    }
+
+
+    #controls button {
+      min-width: 64px;
+      min-height: 32px;
     }
   </style>
 </head>
@@ -44,9 +50,14 @@
   <canvas id="canvas"></canvas>
   <details id="controls">
     <summary>Settings</summary>
-    <input type="checkbox" id="showGrid" name="showGrid" value="1" checked />
+    <input type="checkbox" id="showGrid" name="showGrid" checked />
     <label for="showGrid">Show Grid</label>
     <hr>
+    <input type="checkbox" id="fadeOut" name="fadeOut" checked />
+    <label for="fadeOut">Fade Dead Cells</label>
+    <hr>
+    <button id="startStopBtn">Pause</button>
+    <button id="resetBtn">Reset</button>
   </details>
 </body>
 

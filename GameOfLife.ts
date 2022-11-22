@@ -40,14 +40,18 @@ class Cell {
         }
     }
 
-    draw(dt: number): void {
+    draw(dt: number, fadeOut: boolean): void {
         if (!this.alive) {
             if (this.died_at == -1) { return; }
 
             const elapsed = dt - this.died_at;
             if (elapsed > 1000) { return; }
 
-            this.ctx.fillStyle = `rgba(226, 78, 27, ${Math.max(0.7 - EaseOut(Normalize(elapsed, 1000, 0)), 0)})`;
+            if (fadeOut) {
+                this.ctx.fillStyle = `rgba(226, 78, 27, ${Math.max(0.7 - EaseOut(Normalize(elapsed, 1000, 0)), 0)})`;
+            } else {
+                return;
+            }
         } else {
             this.ctx.fillStyle = 'rgb(226, 78, 27)';
         }
@@ -71,29 +75,33 @@ export class GameOfLife extends GameLoop {
     last_refresh: number;
     last_resize: number;
     grid_showing: boolean;
+    fade_dead_cells: boolean;
 
     constructor(canvas: HTMLCanvasElement) {
-        super(16.67 * 5, 16.67);
+        super(16.67 * 10, 16.67 * 2);
 
         this.canvas = canvas;
         this.context = this.canvas.getContext("2d") as CanvasRenderingContext2D;
 
-        this.cell_size = 25;
-        this.num_cols = Math.floor(window.innerWidth / this.cell_size);
-        this.num_rows = Math.floor(window.innerHeight / this.cell_size);
         this.last_refresh = 0;
         this.last_resize = 0;
+
         this.grid_showing = true;
+        this.fade_dead_cells = true;
+        this.cell_size = 0;
+        this.num_rows = 0;
+        this.num_cols = 0;
+        this.cells = [[]];
 
-        this.cells = this.randomize();
-
-        this.canvas.width
-
-        //window.onresize = () => {
-        //    this.draw(window.performance.now());
-        //    this.forceDraw();
-        //}
+        this.reset();
         this.start();
+    }
+
+    reset(): void {
+        this.cell_size = 24;
+        this.num_cols = Math.floor(window.innerWidth / this.cell_size);
+        this.num_rows = Math.floor(window.innerHeight / this.cell_size);
+        this.cells = this.randomize();
     }
 
     drawGrid(): void {
@@ -217,7 +225,7 @@ export class GameOfLife extends GameLoop {
                 if (cell.alive) {
                     total_alive += 1;
                 }
-                cell.draw(timeStamp);
+                cell.draw(timeStamp, this.fade_dead_cells);
             }
         }
 
@@ -269,13 +277,60 @@ declare global {
 document.addEventListener("DOMContentLoaded", () => {
     let canvas = document.getElementById("canvas") as HTMLCanvasElement;
     globalThis.GOL = new GameOfLife(canvas);
+
     var showGridEl = document.getElementById("showGrid");
     if (showGridEl) {
+        // show and hide the grid
         showGridEl.addEventListener("input", (ev: Event) => {
             if ((ev.target as HTMLInputElement).checked) {
                 globalThis.GOL.grid_showing = true;
             } else {
                 globalThis.GOL.grid_showing = false;
+            }
+            // trigger one more draw if we aren't running
+            // so the grid is actually removed.
+            if (!globalThis.GOL.running) {
+                globalThis.GOL.draw(globalThis.GOL.last_draw_time);
+            }
+        });
+    }
+
+    var startStopBtn = document.getElementById("startStopBtn");
+    if (startStopBtn) {
+        // start and stop the simulation
+        startStopBtn.addEventListener("click", (ev: MouseEvent) => {
+            let targetEl = ev.target as HTMLInputElement;
+            if (globalThis.GOL.running) {
+                targetEl.innerText = "Start";
+                globalThis.GOL.stop();
+            } else {
+                targetEl.innerText = "Pause";
+                globalThis.GOL.start();
+            }
+        });
+    }
+
+    var fadeOutEl = document.getElementById("fadeOut");
+    if (fadeOutEl) {
+        fadeOutEl.addEventListener("input", (ev: Event) => {
+            if ((ev.target as HTMLInputElement).checked) {
+                globalThis.GOL.fade_dead_cells = true;
+            } else {
+                globalThis.GOL.fade_dead_cells = false;
+            }
+            if (!globalThis.GOL.running) {
+                globalThis.GOL.draw(globalThis.GOL.last_draw_time);
+            }
+        });
+    }
+
+    var resetBtn = document.getElementById("resetBtn");
+    if (resetBtn) {
+        resetBtn.addEventListener("click", (ev: MouseEvent) => {
+            let targetEl = ev.target as HTMLInputElement;
+            globalThis.GOL.reset();
+            if (!globalThis.GOL.running) {
+                globalThis.GOL.draw(globalThis.GOL.last_draw_time);
             }
         });
     }
