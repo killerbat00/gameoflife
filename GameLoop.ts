@@ -31,7 +31,7 @@ export abstract class GameLoop {
         window.cancelAnimationFrame(this.last_anim_request);
     }
 
-    loop(timeStamp: number): void {
+    loop(timeStamp: DOMHighResTimeStamp): void {
         this.last_anim_request = window.requestAnimationFrame(this.loop.bind(this));
 
         const draw_elapsed = timeStamp - this.last_draw_time;

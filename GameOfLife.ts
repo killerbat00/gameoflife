@@ -70,6 +70,7 @@ export class GameOfLife extends GameLoop {
     num_cols: number;
     last_refresh: number;
     last_resize: number;
+    grid_showing: boolean;
 
     constructor(canvas: HTMLCanvasElement) {
         super(16.67 * 5, 16.67);
@@ -78,17 +79,47 @@ export class GameOfLife extends GameLoop {
         this.context = this.canvas.getContext("2d") as CanvasRenderingContext2D;
 
         this.cell_size = 25;
-        this.num_cols = Math.ceil(window.innerWidth / this.cell_size);
-        this.num_rows = Math.ceil(window.innerHeight / this.cell_size);
+        this.num_cols = Math.floor(window.innerWidth / this.cell_size);
+        this.num_rows = Math.floor(window.innerHeight / this.cell_size);
         this.last_refresh = 0;
         this.last_resize = 0;
+        this.grid_showing = true;
 
         this.cells = this.randomize();
 
-        window.onresize = () => {
-            this.forceDraw();
-        }
+        this.canvas.width
+
+        //window.onresize = () => {
+        //    this.draw(window.performance.now());
+        //    this.forceDraw();
+        //}
         this.start();
+    }
+
+    drawGrid(): void {
+        if (!this.grid_showing) { return; }
+        this.context.save();
+        this.context.strokeStyle = `rgb(100, 100, 25)`;
+        for (let x = 0; x <= this.num_cols; x++) {
+            this.context.beginPath();
+            this.context.lineWidth = 1;
+            this.context.lineJoin = 'round';
+            this.context.moveTo(x * this.cell_size, 0);
+            this.context.lineTo(x * this.cell_size, this.cell_size * (this.num_rows - 1));
+            this.context.stroke();
+            this.context.closePath();
+        }
+
+        for (let y = 0; y <= this.num_rows; y++) {
+            this.context.beginPath();
+            this.context.lineWidth = 1;
+            this.context.lineJoin = 'round';
+            this.context.moveTo(0, y * this.cell_size);
+            this.context.lineTo(this.cell_size * (this.num_cols - 1), y * this.cell_size);
+            this.context.stroke();
+            this.context.closePath();
+        }
+        this.context.restore();
     }
 
     resize(): void {
@@ -106,31 +137,31 @@ export class GameOfLife extends GameLoop {
             this.num_cols = Math.ceil(width / this.cell_size);
             this.num_rows = Math.ceil(height / this.cell_size);
 
-            if (this.num_rows > this.cells.length) {
-                let needed = this.num_rows - this.cells.length;
-                for (let ni = 0; ni < needed; ni++) {
-                    let n = [];
-                    for (let nni = 0; nni < this.num_cols; nni++) {
-                        n.push(new Cell({ context: this.context, x: nni, y: this.cells.length, size: this.cell_size }));
-                    }
-                    this.cells.push(n);
-                }
-            } else if (this.num_rows < this.cells.length) {
-                this.cells.splice(this.num_rows - 1, this.cells.length - this.num_rows);
-            }
+            //    if (this.num_rows > this.cells.length) {
+            //        let needed = this.num_rows - this.cells.length;
+            //        for (let ni = 0; ni < needed; ni++) {
+            //            let n = [];
+            //            for (let nni = 0; nni < this.num_cols; nni++) {
+            //                n.push(new Cell({ context: this.context, x: nni, y: this.cells.length, size: this.cell_size }));
+            //            }
+            //            this.cells.push(n);
+            //        }
+            //    } else if (this.num_rows < this.cells.length) {
+            //        this.cells.splice(this.num_rows - 1, this.cells.length - this.num_rows);
+            //    }
 
-            if (this.num_cols > this.cells[0].length) {
-                let needed = this.num_cols - this.cells[0].length;
-                for (let rowi = 0; rowi < this.cells.length; rowi++) {
-                    for (let ni = 0; ni < needed; ni++) {
-                        this.cells[rowi].push(new Cell({ context: this.context, x: this.cells[rowi].length, y: rowi, size: this.cell_size }));
-                    }
-                }
-            } else if (this.num_cols < this.cells[0].length) {
-                for (let rowi = 0; rowi < this.cells.length; rowi++) {
-                    this.cells[rowi].splice(this.num_cols - 1, this.cells[rowi].length - this.num_cols);
-                }
-            }
+            //    if (this.num_cols > this.cells[0].length) {
+            //        let needed = this.num_cols - this.cells[0].length;
+            //        for (let rowi = 0; rowi < this.cells.length; rowi++) {
+            //            for (let ni = 0; ni < needed; ni++) {
+            //                this.cells[rowi].push(new Cell({ context: this.context, x: this.cells[rowi].length, y: rowi, size: this.cell_size }));
+            //            }
+            //        }
+            //    } else if (this.num_cols < this.cells[0].length) {
+            //        for (let rowi = 0; rowi < this.cells.length; rowi++) {
+            //            this.cells[rowi].splice(this.num_cols - 1, this.cells[rowi].length - this.num_cols);
+            //        }
+            //    }
         }
         this.last_resize = window.performance.now();
     }
@@ -138,10 +169,10 @@ export class GameOfLife extends GameLoop {
     randomize(): Cell[][] {
         let grid: Cell[][] = [];
 
-        for (let r = 0; r < this.num_rows; r++) {
+        for (let r = 0; r < this.num_rows - 1; r++) {
             grid.push([]);
-            for (let c = 0; c < this.num_cols; c++) {
-                let cell = new Cell({ context: this.context, x: c, y: r, size: this.cell_size });
+            for (let c = 0; c < this.num_cols - 1; c++) {
+                let cell = new Cell({ context: this.context, x: c + 1, y: r + 1, size: this.cell_size });
                 grid[r].push(cell);
             }
         }
@@ -151,6 +182,8 @@ export class GameOfLife extends GameLoop {
 
     refresh(): void {
         let elapsed_seconds = (window.performance.now() - this.last_refresh) / 1000;
+
+        //only refresh once every 10s
         if (elapsed_seconds <= 10) {
             return;
         }
@@ -175,6 +208,7 @@ export class GameOfLife extends GameLoop {
         this.resize();
         this.context.fillStyle = 'rgb(218, 118, 53)';
         this.context.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.drawGrid();
 
         let total_alive = 0;
         for (let y = 0; y < this.cells.length; y++) {
@@ -235,4 +269,14 @@ declare global {
 document.addEventListener("DOMContentLoaded", () => {
     let canvas = document.getElementById("canvas") as HTMLCanvasElement;
     globalThis.GOL = new GameOfLife(canvas);
+    var showGridEl = document.getElementById("showGrid");
+    if (showGridEl) {
+        showGridEl.addEventListener("input", (ev: Event) => {
+            if ((ev.target as HTMLInputElement).checked) {
+                globalThis.GOL.grid_showing = true;
+            } else {
+                globalThis.GOL.grid_showing = false;
+            }
+        });
+    }
 });

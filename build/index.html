@@ -6,10 +6,48 @@
   <script type="module" src="./GameOfLife.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Game of Life</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+    }
+
+
+    #controls {
+      position: fixed;
+      min-width: 200px;
+      padding: 8px;
+      border-radius: 5px;
+      top: 8px;
+      left: 8px;
+
+      background: rgba(127, 127, 127, 0.5);
+      color: black;
+      transition: all .25s;
+    }
+
+    #controls>summary {
+      text-align: center;
+    }
+
+    #controls:hover,
+    #controls:focus,
+    #controls:focus-visible {
+      background: rgb(75, 75, 75);
+      transition: all .25s;
+      color: white;
+    }
+  </style>
 </head>
 
 <body>
   <canvas id="canvas"></canvas>
+  <details id="controls">
+    <summary>Settings</summary>
+    <input type="checkbox" id="showGrid" name="showGrid" value="1" checked />
+    <label for="showGrid">Show Grid</label>
+    <hr>
+  </details>
 </body>
 
 </html>
