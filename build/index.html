@@ -12,7 +12,6 @@
       overflow: hidden;
     }
 
-
     #controls {
       position: fixed;
       min-width: 200px;
@@ -22,7 +21,7 @@
       left: 8px;
 
       background: rgba(127, 127, 127, 0.5);
-      color: black;
+      color: rgba(220, 220, 220, 0.5);
       transition: all .25s;
     }
 
@@ -34,14 +33,24 @@
       color: white;
     }
 
+    #controls:hover button,
+    #controls:focus button,
+    #controls:focus-visible button {
+      opacity: 1;
+    }
+
     #controls>summary {
       text-align: center;
     }
 
+    #controls>input {
+      margin-top: 8px;
+    }
 
     #controls button {
       min-width: 64px;
       min-height: 32px;
+      opacity: 0.5;
     }
   </style>
 </head>
@@ -55,6 +64,12 @@
     <hr>
     <input type="checkbox" id="fadeOut" name="fadeOut" checked />
     <label for="fadeOut">Fade Dead Cells</label>
+    <hr>
+    Cell Shape
+    <input type="radio" id="shapeCircle" name="shape" checked />
+    <label for="shapeCircle">Circle</label>
+    <input type="radio" id="shapeSquare" name="shape" />
+    <label for="shapeSquare">Square</label>
     <hr>
     <button id="startStopBtn">Pause</button>
     <button id="resetBtn">Reset</button>

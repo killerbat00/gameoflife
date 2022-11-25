@@ -1,18 +1,15 @@
 import { EaseOut, Normalize, OneInFifteenChance } from "./Utils.js";
 import { GameLoop } from "./GameLoop.js";
 
-interface CellCopyCreationArgs {
-    cell: Cell;
+type CellType = {
+    ctx: CanvasRenderingContext2D;
+    grid_x: number;
+    grid_y: number;
+    alive: boolean;
+    died_at: number;
+    cell_size: number;
+    shape: string;
 }
-
-interface CellCreationArgs {
-    context: CanvasRenderingContext2D;
-    x: number;
-    y: number;
-    size: number;
-}
-
-type CellConstructorArgs = CellCopyCreationArgs | CellCreationArgs;
 
 class Cell {
     ctx: CanvasRenderingContext2D;
@@ -21,23 +18,16 @@ class Cell {
     alive: boolean;
     died_at: number;
     cell_size: number;
+    shape: string;
 
-    constructor(args: CellConstructorArgs) {
-        if ("cell" in args) {
-            this.ctx = args.cell.ctx;
-            this.grid_x = args.cell.grid_x;
-            this.grid_y = args.cell.grid_y;
-            this.alive = args.cell.alive;
-            this.died_at = args.cell.died_at;
-            this.cell_size = args.cell.cell_size;
-        } else {
-            this.ctx = args.context;
-            this.grid_x = args.x;
-            this.grid_y = args.y;
-            this.cell_size = args.size;
-            this.alive = !!OneInFifteenChance();
-            this.died_at = -1;
-        }
+    constructor({ ctx, grid_x, grid_y, alive, died_at, cell_size, shape }: CellType) {
+        this.ctx = ctx;
+        this.grid_x = grid_x;
+        this.grid_y = grid_y;
+        this.alive = alive;
+        this.died_at = died_at;
+        this.cell_size = cell_size;
+        this.shape = shape;
     }
 
     draw(dt: number, fadeOut: boolean): void {
@@ -55,8 +45,13 @@ class Cell {
         } else {
             this.ctx.fillStyle = 'rgb(226, 78, 27)';
         }
+
         this.ctx.beginPath();
-        this.ctx.arc(this.grid_x * this.cell_size, this.grid_y * this.cell_size, this.cell_size / 2, 0, 2 * Math.PI);
+        if (this.shape === "circle") {
+            this.ctx.arc(this.grid_x * this.cell_size, this.grid_y * this.cell_size, this.cell_size / 2, 0, 2 * Math.PI);
+        } else if (this.shape === "square") {
+            this.ctx.fillRect(this.grid_x * this.cell_size, this.grid_y * this.cell_size, this.cell_size, this.cell_size);
+        }
         this.ctx.fill();
     }
 }
@@ -76,9 +71,10 @@ export class GameOfLife extends GameLoop {
     last_resize: number;
     grid_showing: boolean;
     fade_dead_cells: boolean;
+    cell_shape: string;
 
     constructor(canvas: HTMLCanvasElement) {
-        super(16.67 * 10, 16.67 * 2);
+        super(16.67, 16.67);
 
         this.canvas = canvas;
         this.context = this.canvas.getContext("2d") as CanvasRenderingContext2D;
@@ -92,6 +88,7 @@ export class GameOfLife extends GameLoop {
         this.num_rows = 0;
         this.num_cols = 0;
         this.cells = [[]];
+        this.cell_shape = "circle";
 
         this.reset();
         this.start();
@@ -112,7 +109,7 @@ export class GameOfLife extends GameLoop {
             this.context.beginPath();
             this.context.lineWidth = 1;
             this.context.lineJoin = 'round';
-            this.context.moveTo(x * this.cell_size, 0);
+            this.context.moveTo((x * this.cell_size), 0);
             this.context.lineTo(x * this.cell_size, this.cell_size * (this.num_rows - 1));
             this.context.stroke();
             this.context.closePath();
@@ -122,8 +119,8 @@ export class GameOfLife extends GameLoop {
             this.context.beginPath();
             this.context.lineWidth = 1;
             this.context.lineJoin = 'round';
-            this.context.moveTo(0, y * this.cell_size);
-            this.context.lineTo(this.cell_size * (this.num_cols - 1), y * this.cell_size);
+            this.context.moveTo(0, (y * this.cell_size));
+            this.context.lineTo(this.cell_size * (this.num_cols), y * this.cell_size);
             this.context.stroke();
             this.context.closePath();
         }
@@ -132,6 +129,7 @@ export class GameOfLife extends GameLoop {
 
     resize(): void {
         const elapsed = (window.performance.now() - this?.last_resize);
+        // debounce 250ms
         if (this.last_resize > 0 && elapsed < 250) {
             return;
         }
@@ -180,7 +178,8 @@ export class GameOfLife extends GameLoop {
         for (let r = 0; r < this.num_rows - 1; r++) {
             grid.push([]);
             for (let c = 0; c < this.num_cols - 1; c++) {
-                let cell = new Cell({ context: this.context, x: c + 1, y: r + 1, size: this.cell_size });
+                const cellArgs = { ctx: this.context, grid_x: c + 1, grid_y: r + 1, alive: !!OneInFifteenChance(), died_at: -1, cell_size: this.cell_size, shape: this.cell_shape };
+                let cell = new Cell({ ...cellArgs });
                 grid[r].push(cell);
             }
         }
@@ -225,6 +224,7 @@ export class GameOfLife extends GameLoop {
                 if (cell.alive) {
                     total_alive += 1;
                 }
+                cell.shape = this.cell_shape;
                 cell.draw(timeStamp, this.fade_dead_cells);
             }
         }
@@ -252,13 +252,13 @@ export class GameOfLife extends GameLoop {
                     if (num_alive == 2 || num_alive == 3) {
                         return cell;
                     }
-                    const new_cell = new Cell({ cell: cell });
-                    new_cell.alive = false
+                    const new_cell = new Cell({ ...cell, shape: this.cell_shape });
+                    new_cell.alive = false;
                     new_cell.died_at = timeStamp;
                     return new_cell;
                 } else {
                     if (num_alive == 3) {
-                        const new_cell = new Cell({ cell: cell });
+                        const new_cell = new Cell({ ...cell, shape: this.cell_shape })
                         new_cell.alive = true;
                         new_cell.died_at = -1;
                         return new_cell;
@@ -267,6 +267,12 @@ export class GameOfLife extends GameLoop {
                 }
             });
         });
+    }
+
+    drawLastFrame(): void {
+        if (!this.running) {
+            this.draw(this.last_draw_time);
+        }
     }
 }
 
@@ -289,9 +295,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             // trigger one more draw if we aren't running
             // so the grid is actually removed.
-            if (!globalThis.GOL.running) {
-                globalThis.GOL.draw(globalThis.GOL.last_draw_time);
-            }
+            globalThis.GOL.drawLastFrame();
         });
     }
 
@@ -318,19 +322,34 @@ document.addEventListener("DOMContentLoaded", () => {
             } else {
                 globalThis.GOL.fade_dead_cells = false;
             }
-            if (!globalThis.GOL.running) {
-                globalThis.GOL.draw(globalThis.GOL.last_draw_time);
-            }
+            globalThis.GOL.drawLastFrame();
         });
     }
 
     var resetBtn = document.getElementById("resetBtn");
     if (resetBtn) {
         resetBtn.addEventListener("click", (ev: MouseEvent) => {
-            let targetEl = ev.target as HTMLInputElement;
             globalThis.GOL.reset();
-            if (!globalThis.GOL.running) {
-                globalThis.GOL.draw(globalThis.GOL.last_draw_time);
+            globalThis.GOL.drawLastFrame();
+        });
+    }
+
+    var circleRadio = document.getElementById("shapeCircle");
+    if (circleRadio) {
+        circleRadio.addEventListener("input", (ev: Event) => {
+            if ((ev.target as HTMLInputElement).checked) {
+                globalThis.GOL.cell_shape = "circle";
+                globalThis.GOL.drawLastFrame();
+            }
+        });
+    }
+
+    var squareRadio = document.getElementById("shapeSquare");
+    if (squareRadio) {
+        squareRadio.addEventListener("input", (ev: Event) => {
+            if ((ev.target as HTMLInputElement).checked) {
+                globalThis.GOL.cell_shape = "square";
+                globalThis.GOL.drawLastFrame();
             }
         });
     }
