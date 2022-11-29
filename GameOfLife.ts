@@ -7,7 +7,6 @@ type GameOptions = {
   showGrid: boolean;
   fadeDeadCells: boolean;
   cellShape: CellShape;
-  updateCellsMs: number;
   updateMs: number;
   drawMs: number;
   bgColor: string;
@@ -26,7 +25,7 @@ export class CellAutomata extends GameLoop {
   options!: GameOptions;
 
   constructor(options: GameOptions) {
-    super(options.updateCellsMs, options.updateMs, options.drawMs);
+    super(options.updateMs, options.drawMs);
     const canvi = document.getElementsByTagName("canvas");
     if (canvi.length === 0) {
       console.log("You forgot the canvas element, silly.");
@@ -86,10 +85,6 @@ export class CellAutomata extends GameLoop {
       this.numRows = Math.ceil(height / this.cellSize)
     }
     this.lastResize = window.performance.now();
-  }
-
-  update(timeStamp: DOMHighResTimeStamp): void {
-    return;
   }
 
   generateCells(): Cell[][] {
@@ -163,7 +158,7 @@ export class CellAutomata extends GameLoop {
     }
   }
 
-  logicUpdate(timeStamp: DOMHighResTimeStamp): void {
+  update(timeStamp: DOMHighResTimeStamp): void {
     this.cells = this.cells.map((row, cellY) => {
       return row.map((cell, cellX) => {
         let numAlive = 0;
@@ -212,8 +207,7 @@ document.addEventListener("DOMContentLoaded", () => {
     showGrid: true,
     fadeDeadCells: true,
     cellShape: 'circle',
-    updateCellsMs: 16.67 * 10,
-    updateMs: 16.67,
+    updateMs: 16.67 * 10,
     drawMs: 16.67,
     bgColor: 'rgb(218, 118, 53)',
     cellColor: 'rgb(226, 78, 27)',
