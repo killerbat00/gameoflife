@@ -90,8 +90,6 @@ export class CellAutomata extends GameLoop {
           alive: !!OneInFifteenChance(),
           diedAt: -1,
           cellSize: this.cellSize,
-          shape: this.options.cellShape,
-          color: this.options.cellColor,
         };
         let cell = new Cell(cellArgs);
         row.push(cell);
@@ -139,7 +137,6 @@ export class CellAutomata extends GameLoop {
     for (let row of this.cells) {
       for (let cell of row) {
         totalAlive += Number(cell.alive);
-        cell.shape = this.options.cellShape;
         cell.draw({ timeStamp, gameOptions: this.options });
       }
     }
@@ -165,10 +162,10 @@ export class CellAutomata extends GameLoop {
           if (numAlive == 2 || numAlive == 3) {
             return cell;
           }
-          return new Cell({ ...cell, alive: false, diedAt: timeStamp, shape: this.options.cellShape });
+          return new Cell({ ...cell, alive: false, diedAt: timeStamp });
         } else {
           if (numAlive == 3) {
-            return new Cell({ ...cell, alive: true, diedAt: -1, shape: this.options.cellShape });
+            return new Cell({ ...cell, alive: true, diedAt: -1 });
           }
           return cell;
         }

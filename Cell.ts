@@ -1,5 +1,5 @@
 import { EaseOut, Normalize } from "./Utils.js";
-import { CellShape, GameOptions } from "./GameOptions.js";
+import { GameOptions } from "./GameOptions.js";
 import { DrawCircle, DrawRect } from "./CanvasUtils.js";
 
 export type CellType = {
@@ -9,8 +9,6 @@ export type CellType = {
   alive: boolean;
   diedAt: number;
   cellSize: number;
-  shape: CellShape;
-  color: string;
 }
 
 export type DrawOptions = {
@@ -25,22 +23,18 @@ export class Cell {
   alive: boolean;
   diedAt: number;
   cellSize: number;
-  shape: CellShape;
-  color: string;
 
-  constructor({ ctx, posX, posY, alive, diedAt, cellSize, shape, color }: CellType) {
+  constructor({ ctx, posX, posY, alive, diedAt, cellSize }: CellType) {
     this.ctx = ctx;
     this.posX = posX;
     this.posY = posY;
     this.alive = alive;
     this.diedAt = diedAt;
     this.cellSize = cellSize;
-    this.shape = shape;
-    this.color = color;
   }
 
   draw({ timeStamp, gameOptions }: DrawOptions): void {
-    let color = this.color;
+    let color = gameOptions.cellColor;
 
     if (!this.alive) {
       if (!gameOptions.fadeDeadCells) { return; }
@@ -59,7 +53,7 @@ export class Cell {
     }
 
     this.ctx.beginPath();
-    if (this.shape === "circle") {
+    if (gameOptions.cellShape == "circle") {
       if (gameOptions.showGrid) {
         DrawCircle(this.ctx, color,
           {
@@ -77,11 +71,11 @@ export class Cell {
       }
     } else {
       if (gameOptions.showGrid) {
-        DrawRect(this.ctx, this.color,
+        DrawRect(this.ctx, color,
           { x: (this.posX * this.cellSize) + 1, y: (this.posY * this.cellSize) + 1 },
           { x: this.cellSize - 2, y: this.cellSize - 2 });
       } else {
-        DrawRect(this.ctx, this.color,
+        DrawRect(this.ctx, color,
           { x: (this.posX * this.cellSize), y: (this.posY * this.cellSize) },
           { x: this.cellSize, y: this.cellSize });
       }
