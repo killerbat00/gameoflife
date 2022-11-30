@@ -17,3 +17,9 @@ export function DrawRect(ctx: CanvasRenderingContext2D, color: string, from: Vec
     ctx.fillStyle = color;
     ctx.fillRect(from.x, from.y, dimensions.x, dimensions.y);
 }
+
+export function DrawCircle(ctx: CanvasRenderingContext2D, color: string, pos: Vector, radius: number): void {
+    ctx.fillStyle = color;
+    ctx.arc(pos.x, pos.y, radius, 0, 2 * Math.PI);
+    ctx.fill();
+}

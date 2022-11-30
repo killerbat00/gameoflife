@@ -1,5 +1,6 @@
 import { EaseOut, Normalize } from "./Utils.js";
 import { CellShape, GameOptions } from "./GameOptions.js";
+import { DrawCircle, DrawRect } from "./CanvasUtils.js";
 
 export type CellType = {
   ctx: CanvasRenderingContext2D;
@@ -39,32 +40,50 @@ export class Cell {
   }
 
   draw({ timeStamp, gameOptions }: DrawOptions): void {
-    if (!this.alive) {
-      if (this.diedAt == -1) { return; }
-      const elapsed = timeStamp - this.diedAt;
-      if (elapsed > 1000) { return; }
+    let color = this.color;
 
-      if (gameOptions.fadeDeadCells) {
-        //TODO: Use cell color here.
-        this.ctx.fillStyle = `rgba(226, 78, 27, ${Math.max(0.9 - EaseOut(Normalize(elapsed, 1500, 0)), 0)})`;
-      } else {
+    if (!this.alive) {
+      if (!gameOptions.fadeDeadCells) { return; }
+
+      const elapsed = timeStamp - this.diedAt;
+
+      if (this.diedAt == -1) { return; }
+
+      if (elapsed > 1000) {
+        this.diedAt = -1;
         return;
       }
-    } else {
-      this.ctx.fillStyle = this.color;
+
+      //TODO: Use cell color here.
+      color = `rgba(226, 78, 27, ${Math.max(1.0 - EaseOut(Normalize(elapsed, 1000, 0)), 0)})`;
     }
 
     this.ctx.beginPath();
     if (this.shape === "circle") {
-      this.ctx.arc((this.posX * this.cellSize) + this.cellSize / 2,
-        (this.posY * this.cellSize) + this.cellSize / 2,
-        (this.cellSize / 2), 0, 2 * Math.PI);
-      this.ctx.fill();
-    } else if (this.shape === "square") {
       if (gameOptions.showGrid) {
-        this.ctx.fillRect((this.posX * this.cellSize) + 1, (this.posY * this.cellSize) + 1, this.cellSize - 2, this.cellSize - 2);
+        DrawCircle(this.ctx, color,
+          {
+            x: (this.posX * this.cellSize) + this.cellSize / 2,
+            y: (this.posY * this.cellSize) + this.cellSize / 2
+          },
+          (this.cellSize / 2) - 1);
       } else {
-        this.ctx.fillRect((this.posX * this.cellSize), (this.posY * this.cellSize), this.cellSize, this.cellSize);
+        DrawCircle(this.ctx, color,
+          {
+            x: (this.posX * this.cellSize) + this.cellSize / 2,
+            y: (this.posY * this.cellSize) + this.cellSize / 2
+          },
+          (this.cellSize / 2));
+      }
+    } else {
+      if (gameOptions.showGrid) {
+        DrawRect(this.ctx, this.color,
+          { x: (this.posX * this.cellSize) + 1, y: (this.posY * this.cellSize) + 1 },
+          { x: this.cellSize - 2, y: this.cellSize - 2 });
+      } else {
+        DrawRect(this.ctx, this.color,
+          { x: (this.posX * this.cellSize), y: (this.posY * this.cellSize) },
+          { x: this.cellSize, y: this.cellSize });
       }
     }
     this.ctx.closePath();
