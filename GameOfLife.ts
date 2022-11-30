@@ -1,17 +1,8 @@
 import { OneInFifteenChance } from "./Utils.js";
 import { GameLoop } from "./GameLoop.js";
-import { Cell, CellShape } from "./Cell.js";
+import { Cell } from "./Cell.js";
 import { DrawLine, DrawRect } from "./CanvasUtils.js";
-
-type GameOptions = {
-  showGrid: boolean;
-  fadeDeadCells: boolean;
-  cellShape: CellShape;
-  updateMs: number;
-  drawMs: number;
-  bgColor: string;
-  cellColor: string;
-}
+import { GameOptions } from "./GameOptions.js";
 
 export class CellAutomata extends GameLoop {
   canvas!: HTMLCanvasElement;
@@ -149,7 +140,7 @@ export class CellAutomata extends GameLoop {
       for (let cell of row) {
         totalAlive += Number(cell.alive);
         cell.shape = this.options.cellShape;
-        cell.draw(timeStamp, this.options.fadeDeadCells);
+        cell.draw({ timeStamp, gameOptions: this.options });
       }
     }
     // if there are < 5% alive, schedule a refresh

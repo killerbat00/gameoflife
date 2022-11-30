@@ -1,6 +1,5 @@
 import { EaseOut, Normalize } from "./Utils.js";
-
-export type CellShape = "circle" | "square";
+import { CellShape, GameOptions } from "./GameOptions.js";
 
 export type CellType = {
   ctx: CanvasRenderingContext2D;
@@ -11,6 +10,11 @@ export type CellType = {
   cellSize: number;
   shape: CellShape;
   color: string;
+}
+
+export type DrawOptions = {
+  timeStamp: number;
+  gameOptions: GameOptions;
 }
 
 export class Cell {
@@ -34,13 +38,13 @@ export class Cell {
     this.color = color;
   }
 
-  draw(dt: number, fadeOut: boolean): void {
+  draw({ timeStamp, gameOptions }: DrawOptions): void {
     if (!this.alive) {
       if (this.diedAt == -1) { return; }
-      const elapsed = dt - this.diedAt;
+      const elapsed = timeStamp - this.diedAt;
       if (elapsed > 1000) { return; }
 
-      if (fadeOut) {
+      if (gameOptions.fadeDeadCells) {
         //TODO: Use cell color here.
         this.ctx.fillStyle = `rgba(226, 78, 27, ${Math.max(0.9 - EaseOut(Normalize(elapsed, 1500, 0)), 0)})`;
       } else {
@@ -55,9 +59,14 @@ export class Cell {
       this.ctx.arc((this.posX * this.cellSize) + this.cellSize / 2,
         (this.posY * this.cellSize) + this.cellSize / 2,
         (this.cellSize / 2), 0, 2 * Math.PI);
+      this.ctx.fill();
     } else if (this.shape === "square") {
-      this.ctx.fillRect((this.posX * this.cellSize) + 1, (this.posY * this.cellSize) + 1, this.cellSize - 2, this.cellSize - 2);
+      if (gameOptions.showGrid) {
+        this.ctx.fillRect((this.posX * this.cellSize) + 1, (this.posY * this.cellSize) + 1, this.cellSize - 2, this.cellSize - 2);
+      } else {
+        this.ctx.fillRect((this.posX * this.cellSize), (this.posY * this.cellSize), this.cellSize, this.cellSize);
+      }
     }
-    this.ctx.fill();
+    this.ctx.closePath();
   }
 }
