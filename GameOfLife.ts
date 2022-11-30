@@ -165,16 +165,10 @@ export class CellAutomata extends GameLoop {
           if (numAlive == 2 || numAlive == 3) {
             return cell;
           }
-          const newCell = new Cell({ ...cell, shape: this.options.cellShape });
-          newCell.alive = false;
-          newCell.diedAt = timeStamp;
-          return newCell;
+          return new Cell({ ...cell, alive: false, diedAt: timeStamp, shape: this.options.cellShape });
         } else {
           if (numAlive == 3) {
-            const newCell = new Cell({ ...cell, shape: this.options.cellShape });
-            newCell.alive = true;
-            newCell.diedAt = -1;
-            return newCell;
+            return new Cell({ ...cell, alive: true, diedAt: -1, shape: this.options.cellShape });
           }
           return cell;
         }
