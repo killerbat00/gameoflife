@@ -59,20 +59,22 @@
   <canvas id="canvas"></canvas>
   <details id="controls">
     <summary>Settings</summary>
-    <input type="checkbox" id="showGrid" name="showGrid" checked />
+    <input type="checkbox" id="showGrid" name="showGrid" checked autocomplete="off"/>
     <label for="showGrid">Show Grid</label>
     <hr>
-    <input type="checkbox" id="fadeOut" name="fadeOut" checked />
+    <input type="checkbox" id="fadeOut" name="fadeOut" checked autocomplete="off"/>
     <label for="fadeOut">Fade Dead Cells</label>
     <hr>
     Cell Shape
-    <input type="radio" id="shapeCircle" name="shape" checked />
+    <input type="radio" id="shapeCircle" name="shape" checked autocomplete="off"/>
     <label for="shapeCircle">Circle</label>
-    <input type="radio" id="shapeSquare" name="shape" />
+    <input type="radio" id="shapeSquare" name="shape" autocomplete="off"/>
     <label for="shapeSquare">Square</label>
     <hr>
     <button id="startStopBtn">Pause</button>
     <button id="resetBtn">Reset</button>
+    <input type="checkbox" id="autoRefresh" name="autoRefresh" checked autocomplete="off" />
+    <label for="autoRefresh" title="Regenerate cells when < 5% are alive.">Auto Reset</label>
   </details>
 </body>
 

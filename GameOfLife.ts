@@ -140,9 +140,12 @@ export class CellAutomata extends GameLoop {
         cell.draw({ timeStamp, gameOptions: this.options });
       }
     }
-    // if there are < 5% alive, schedule a refresh
-    if (totalAlive / (this.numRows * this.numCols) * 100 <= 5) {
-      this.refresh();
+
+    if (this.options.autoRefresh) {
+      // if there are < 5% alive, schedule a refresh
+      if (totalAlive / (this.numRows * this.numCols) * 100 <= 5) {
+        this.refresh();
+      }
     }
   }
 
@@ -193,6 +196,7 @@ document.addEventListener("DOMContentLoaded", () => {
     drawMs: 16.67,
     bgColor: 'rgb(218, 118, 53)',
     cellColor: 'rgb(226, 78, 27)',
+    autoRefresh: true,
   };
 
   globalThis.GOL = new CellAutomata(options);
@@ -263,6 +267,17 @@ document.addEventListener("DOMContentLoaded", () => {
       if ((ev.target as HTMLInputElement).checked) {
         globalThis.GOL.options.cellShape = "square";
         globalThis.GOL.drawLastFrame();
+      }
+    });
+  }
+
+  var autoRefresh = document.getElementById("autoRefresh");
+  if (autoRefresh) {
+    autoRefresh.addEventListener("input", (ev: Event) => {
+      if ((ev.target as HTMLInputElement).checked) {
+        globalThis.GOL.options.autoRefresh = true;
+      } else {
+        globalThis.GOL.options.autoRefresh = false;
       }
     });
   }

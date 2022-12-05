@@ -8,4 +8,5 @@ export type GameOptions = {
     drawMs: number;
     bgColor: string;
     cellColor: string;
+    autoRefresh: boolean;
 }
